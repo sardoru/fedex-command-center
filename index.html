@@ -571,6 +571,196 @@
       font-size: 0.8rem !important;
     }
 
+    /* Data Layers Panel */
+    .layer-panel {
+      position: fixed;
+      top: 490px; left: 16px;
+      z-index: 80;
+      width: 280px;
+      background: linear-gradient(135deg, rgba(10,10,30,0.92) 0%, rgba(20,15,40,0.92) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(77,20,140,0.15);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .layer-panel.collapsed .layer-body { display: none; }
+    .layer-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .layer-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #c4b5ff;
+      text-transform: uppercase;
+    }
+    .layer-toggle-arrow {
+      font-size: 0.7rem;
+      color: #6b7db3;
+      transition: transform 0.3s;
+    }
+    .layer-panel.collapsed .layer-toggle-arrow { transform: rotate(180deg); }
+    .layer-body { padding: 6px 0; }
+    .layer-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .layer-row:hover { background: rgba(255,255,255,0.03); }
+    .layer-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .layer-label {
+      flex: 1;
+      font-size: 0.72rem;
+      color: #94a3b8;
+      line-height: 1.3;
+    }
+    .layer-row.active .layer-label { color: #e0e0ff; }
+    .layer-count {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.55rem;
+      color: #4a5580;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .layer-switch {
+      width: 32px; height: 16px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .layer-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #4a5580;
+      transition: all 0.3s;
+    }
+    .layer-row.active .layer-switch { background: rgba(77,20,140,0.4); }
+    .layer-row.active .layer-switch::after {
+      left: 18px;
+      background: #c4b5ff;
+      box-shadow: 0 0 6px rgba(196,181,255,0.5);
+    }
+
+    /* Aircraft tooltip */
+    .aircraft-tooltip {
+      position: fixed;
+      z-index: 200;
+      background: rgba(10,10,30,0.95);
+      border: 1px solid rgba(77,20,140,0.4);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.75rem;
+      color: #e0e0ff;
+      pointer-events: none;
+      display: none;
+      min-width: 180px;
+      backdrop-filter: blur(10px);
+    }
+    .aircraft-tooltip .tt-callsign {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #FF6200;
+      margin-bottom: 6px;
+    }
+    .aircraft-tooltip .tt-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+    .aircraft-tooltip .tt-label { color: #6b7db3; }
+
+    /* SIGMET popup */
+    .sigmet-popup {
+      position: fixed;
+      z-index: 200;
+      background: rgba(10,10,30,0.95);
+      border: 1px solid rgba(239,68,68,0.4);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.72rem;
+      color: #e0e0ff;
+      max-width: 360px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+      backdrop-filter: blur(10px);
+    }
+    .sigmet-popup .sp-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #ef4444;
+      margin-bottom: 8px;
+    }
+    .sigmet-popup .sp-close {
+      position: absolute;
+      top: 8px; right: 10px;
+      background: none; border: none;
+      color: #6b7db3; cursor: pointer;
+      font-size: 1rem;
+    }
+    .sigmet-popup pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    /* NOTAM popup */
+    .notam-popup {
+      position: fixed;
+      z-index: 200;
+      background: rgba(10,10,30,0.95);
+      border: 1px solid rgba(251,191,36,0.4);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.72rem;
+      color: #e0e0ff;
+      max-width: 400px;
+      max-height: 350px;
+      overflow-y: auto;
+      display: none;
+      backdrop-filter: blur(10px);
+    }
+    .notam-popup .np-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fbbf24;
+      margin-bottom: 8px;
+    }
+    .notam-popup .np-close {
+      position: absolute;
+      top: 8px; right: 10px;
+      background: none; border: none;
+      color: #6b7db3; cursor: pointer;
+      font-size: 1rem;
+    }
+
     @media (max-width: 900px) {
       .sidebar {
         width: 100%;
@@ -593,6 +783,7 @@
       .logo { font-size: 0.9rem; }
       .feed-panel { display: none; }
       .legend-panel { display: none; }
+      .layer-panel { display: none; }
     }
   </style>
 </head>
@@ -647,6 +838,20 @@
     </div>
     <div class="feed-body" id="feedBody"></div>
   </div>
+
+  <!-- Data Layers -->
+  <div class="layer-panel" id="layerPanel">
+    <div class="layer-header" onclick="toggleLayerPanel()">
+      <span class="layer-title">DATA LAYERS</span>
+      <span class="layer-toggle-arrow" id="layerArrow">▼</span>
+    </div>
+    <div class="layer-body" id="layerBody"></div>
+  </div>
+
+  <!-- Tooltips / Popups -->
+  <div class="aircraft-tooltip" id="aircraftTooltip"></div>
+  <div class="sigmet-popup" id="sigmetPopup"></div>
+  <div class="notam-popup" id="notamPopup"></div>
 
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
@@ -1109,6 +1314,30 @@ function showDetail(hub) {
     `<div class="detail-item"><div class="label">${i.label}</div><div class="value">${i.value}</div></div>`
   ).join('');
 
+  // Add weather data if available
+  if (LAYERS.weather.data && LAYERS.weather.enabled) {
+    const icao = Object.entries(ICAO_TO_IATA).find(([k,v]) => v === hub.id);
+    if (icao) {
+      const metar = LAYERS.weather.data.find(m => m.icaoId === icao[0]);
+      if (metar) {
+        const cat = metar.fltCat || 'VFR';
+        const catColor = FLIGHT_CAT_COLORS[cat] || '#22c55e';
+        const wind = metar.wdir && metar.wspd ? `${metar.wdir}° @ ${metar.wspd}kt${metar.wgst ? ' G'+metar.wgst+'kt' : ''}` : 'Calm';
+        const vis = metar.visib !== undefined ? metar.visib + ' SM' : 'N/A';
+        const temp = metar.temp !== undefined ? metar.temp + '°C' : 'N/A';
+        const wxItems = [
+          { label:'Flight Cat', value:`<span style="color:${catColor};font-weight:700;">${cat}</span>` },
+          { label:'Wind', value: wind },
+          { label:'Visibility', value: vis },
+          { label:'Temperature', value: temp },
+        ];
+        document.getElementById('detailGrid').innerHTML += wxItems.map(i =>
+          `<div class="detail-item"><div class="label">${i.label}</div><div class="value">${i.value}</div></div>`
+        ).join('');
+      }
+    }
+  }
+
   const fact = hub.desc;
   document.getElementById('funFact').innerHTML = `📦 ${fact}`;
   document.getElementById('detailPanel').classList.add('show');
@@ -1173,6 +1402,624 @@ function setupEvents() {
   });
 }
 
+// ══════════════════════════════════════
+//  DATA LAYERS
+// ══════════════════════════════════════
+
+const LAYERS = {
+  flights: { enabled: true,  label: "Live FedEx Flights", icon: "\u2708\uFE0F", color: "#FF6200", data: null, timer: null, count: null },
+  weather: { enabled: false, label: "Hub Weather (METAR)", icon: "\uD83C\uDF24\uFE0F", color: "#22D3EE", data: null, timer: null, count: null },
+  sigmets: { enabled: false, label: "Active SIGMETs", icon: "\u26A0\uFE0F", color: "#ef4444", data: null, timer: null, count: null },
+  wind:    { enabled: false, label: "Jet Stream", icon: "\uD83C\uDF2C\uFE0F", color: "#a78bfa", data: null, timer: null, count: null },
+  notams:  { enabled: false, label: "NOTAMs", icon: "\uD83D\uDCCB", color: "#fbbf24", data: null, timer: null, count: null },
+};
+
+// Three.js objects for layers
+let flightPointsMesh = null;
+let flightPositions = [];
+let weatherMarkers = null;
+let windParticleSystem = null;
+let notamMarkers = null;
+
+function renderLayerPanel() {
+  const body = document.getElementById('layerBody');
+  body.innerHTML = Object.entries(LAYERS).map(([key, layer]) => {
+    const countStr = layer.count !== null ? `(${layer.count})` : '';
+    return `
+      <div class="layer-row ${layer.enabled ? 'active' : ''}" onclick="toggleLayer('${key}')">
+        <div class="layer-dot" style="background:${layer.color};box-shadow:0 0 6px ${layer.color}40;"></div>
+        <span class="layer-label">${layer.icon} ${layer.label} ${countStr}</span>
+        <div class="layer-switch"></div>
+      </div>`;
+  }).join('');
+}
+
+function toggleLayerPanel() {
+  const panel = document.getElementById('layerPanel');
+  panel.classList.toggle('collapsed');
+  const arrow = document.getElementById('layerArrow');
+  arrow.textContent = panel.classList.contains('collapsed') ? '▶' : '▼';
+}
+
+function toggleLayer(key) {
+  LAYERS[key].enabled = !LAYERS[key].enabled;
+  renderLayerPanel();
+  if (LAYERS[key].enabled) {
+    activateLayer(key);
+  } else {
+    deactivateLayer(key);
+  }
+}
+
+function activateLayer(key) {
+  switch(key) {
+    case 'flights': fetchFlights(); LAYERS.flights.timer = setInterval(fetchFlights, 10000); break;
+    case 'weather': fetchWeather(); LAYERS.weather.timer = setInterval(fetchWeather, 300000); break;
+    case 'sigmets': fetchSigmets(); LAYERS.sigmets.timer = setInterval(fetchSigmets, 300000); break;
+    case 'wind':    initWindLayer(); break;
+    case 'notams':  fetchNotams(); LAYERS.notams.timer = setInterval(fetchNotams, 300000); break;
+  }
+}
+
+function deactivateLayer(key) {
+  if (LAYERS[key].timer) { clearInterval(LAYERS[key].timer); LAYERS[key].timer = null; }
+  LAYERS[key].data = null;
+  LAYERS[key].count = null;
+  renderLayerPanel();
+  switch(key) {
+    case 'flights': removeFlightPoints(); break;
+    case 'weather': removeWeatherMarkers(); break;
+    case 'sigmets': globe.polygonsData([]); break;
+    case 'wind':    removeWindLayer(); break;
+    case 'notams':  removeNotamMarkers(); break;
+  }
+}
+
+// ── LAYER 1: Live FedEx Flights (OpenSky) ──
+
+function removeFlightPoints() {
+  if (flightPointsMesh) {
+    globe.scene().remove(flightPointsMesh);
+    flightPointsMesh.geometry.dispose();
+    flightPointsMesh.material.dispose();
+    flightPointsMesh = null;
+  }
+  flightPositions = [];
+}
+
+async function fetchFlights() {
+  try {
+    const resp = await fetch('https://opensky-network.org/api/states/all');
+    if (!resp.ok) throw new Error('OpenSky API error');
+    const json = await resp.json();
+    const states = json.states || [];
+    const fdxFlights = states.filter(s => s[1] && s[1].trim().startsWith('FDX'));
+    flightPositions = fdxFlights.map(s => ({
+      callsign: (s[1] || '').trim(),
+      lat: s[6],
+      lng: s[5],
+      altitude: s[7] || 0,     // meters
+      velocity: s[9] || 0,     // m/s
+      heading: s[10] || 0,
+      on_ground: s[8],
+    })).filter(f => f.lat !== null && f.lng !== null);
+
+    LAYERS.flights.data = flightPositions;
+    LAYERS.flights.count = flightPositions.length;
+    renderLayerPanel();
+    renderFlightPoints();
+  } catch(e) {
+    console.warn('Flights layer error:', e);
+    LAYERS.flights.count = 'err';
+    renderLayerPanel();
+  }
+}
+
+function renderFlightPoints() {
+  removeFlightPoints();
+  if (!flightPositions.length || !globe) return;
+
+  const scene = globe.scene();
+  const globeRadius = 100; // globe.gl default radius
+
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(flightPositions.length * 3);
+
+  flightPositions.forEach((f, i) => {
+    const phi = (90 - f.lat) * Math.PI / 180;
+    const theta = (f.lng + 180) * Math.PI / 180;
+    const altScale = 1 + (f.altitude / 6371000) * 4; // exaggerate altitude
+    const r = globeRadius * altScale;
+    positions[i*3]     = -r * Math.sin(phi) * Math.cos(theta);
+    positions[i*3 + 1] = r * Math.cos(phi);
+    positions[i*3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+  });
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const material = new THREE.PointsMaterial({
+    color: 0xFF6200,
+    size: 3,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.9,
+    depthWrite: false,
+  });
+
+  flightPointsMesh = new THREE.Points(geometry, material);
+  scene.add(flightPointsMesh);
+}
+
+// Aircraft tooltip on mouse move
+function setupFlightTooltip() {
+  const tooltip = document.getElementById('aircraftTooltip');
+  const raycaster = new THREE.Raycaster();
+  raycaster.params.Points.threshold = 2;
+  const mouse = new THREE.Vector2();
+
+  document.getElementById('globe-container').addEventListener('mousemove', (e) => {
+    if (!flightPointsMesh || !LAYERS.flights.enabled) { tooltip.style.display = 'none'; return; }
+
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+    const camera = globe.camera();
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(flightPointsMesh);
+
+    if (intersects.length > 0) {
+      const idx = intersects[0].index;
+      const f = flightPositions[idx];
+      if (!f) { tooltip.style.display = 'none'; return; }
+      const flStr = f.altitude ? 'FL' + Math.round(f.altitude * 3.28084 / 100) : 'GND';
+      const spdKts = Math.round(f.velocity * 1.94384);
+      const hdg = Math.round(f.heading);
+      tooltip.innerHTML = `
+        <div class="tt-callsign">${f.callsign}</div>
+        <div class="tt-row"><span class="tt-label">Altitude</span><span>${flStr}</span></div>
+        <div class="tt-row"><span class="tt-label">Speed</span><span>${spdKts} kts</span></div>
+        <div class="tt-row"><span class="tt-label">Heading</span><span>${hdg}°</span></div>
+      `;
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top = (e.clientY - 10) + 'px';
+    } else {
+      tooltip.style.display = 'none';
+    }
+  });
+}
+
+// ── LAYER 2: Hub Weather (METAR) ──
+
+const METAR_IDS = 'KMEM,KIND,PANC,KAFW,KGSO,KMIA,KEWR,KOAK,KONT,LFPG,EDDK,EBLG,EGSS,LTFM,OMDB,VABB,VOBL,VIDP,ZGGG,ZSPD,VHHH,WSSS,RJBB,RJAA,RCTP,RKSI,CYYZ,LIMC';
+
+// Map ICAO to IATA
+const ICAO_TO_IATA = {
+  KMEM:'MEM', KIND:'IND', PANC:'ANC', KAFW:'AFW', KGSO:'GSO', KMIA:'MIA',
+  KEWR:'EWR', KOAK:'OAK', KONT:'ONT', LFPG:'CDG', EDDK:'CGN', EBLG:'LGG',
+  EGSS:'STN', LTFM:'IST', OMDB:'DXB', VABB:'BOM', VOBL:'BLR', VIDP:'DEL',
+  ZGGG:'CAN', ZSPD:'PVG', VHHH:'HKG', WSSS:'SIN', RJBB:'KIX', RJAA:'NRT',
+  RCTP:'TPE', RKSI:'ICN', CYYZ:'YYZ', LIMC:'MXP',
+};
+
+const FLIGHT_CAT_COLORS = {
+  VFR: '#22c55e', MVFR: '#3b82f6', IFR: '#ef4444', LIFR: '#d946ef',
+};
+
+function removeWeatherMarkers() {
+  if (weatherMarkers) {
+    weatherMarkers.forEach(m => {
+      globe.scene().remove(m);
+      m.geometry.dispose();
+      m.material.dispose();
+    });
+    weatherMarkers = null;
+  }
+}
+
+async function fetchWeather() {
+  try {
+    const resp = await fetch(`https://aviationweather.gov/api/data/metar?ids=${METAR_IDS}&format=json`);
+    if (!resp.ok) throw new Error('METAR API error');
+    const metars = await resp.json();
+    LAYERS.weather.data = metars;
+    LAYERS.weather.count = metars.length;
+    renderLayerPanel();
+    renderWeatherMarkers(metars);
+  } catch(e) {
+    console.warn('Weather layer error:', e);
+    LAYERS.weather.count = 'err';
+    renderLayerPanel();
+  }
+}
+
+function renderWeatherMarkers(metars) {
+  removeWeatherMarkers();
+  if (!globe) return;
+  weatherMarkers = [];
+  const scene = globe.scene();
+  const globeRadius = 100;
+
+  metars.forEach(m => {
+    const iata = ICAO_TO_IATA[m.icaoId];
+    const hub = iata ? hubMap[iata] : null;
+    if (!hub) return;
+
+    const cat = m.fltCat || 'VFR';
+    const color = FLIGHT_CAT_COLORS[cat] || '#22c55e';
+
+    // Circle marker
+    const geo = new THREE.RingGeometry(0.6, 1.0, 16);
+    const mat = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+    const mesh = new THREE.Mesh(geo, mat);
+
+    const phi = (90 - hub.lat) * Math.PI / 180;
+    const theta = (hub.lng + 180) * Math.PI / 180;
+    const r = globeRadius * 1.012;
+    mesh.position.set(
+      -r * Math.sin(phi) * Math.cos(theta),
+      r * Math.cos(phi),
+      r * Math.sin(phi) * Math.sin(theta)
+    );
+    mesh.lookAt(0, 0, 0);
+
+    // Wind direction arrow
+    if (m.wdir && m.wdir !== 'VRB') {
+      const arrowGeo = new THREE.ConeGeometry(0.3, 1.2, 4);
+      const arrowMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.7 });
+      const arrow = new THREE.Mesh(arrowGeo, arrowMat);
+      const windRad = (m.wdir - 180) * Math.PI / 180;
+      arrow.position.set(Math.sin(windRad) * 1.4, Math.cos(windRad) * 1.4, 0.1);
+      arrow.rotation.z = -windRad;
+      mesh.add(arrow);
+    }
+
+    // Store METAR data on mesh for potential interaction
+    mesh.userData = { metar: m, hub, cat };
+    scene.add(mesh);
+    weatherMarkers.push(mesh);
+  });
+}
+
+// ── LAYER 3: Active SIGMETs ──
+
+async function fetchSigmets() {
+  try {
+    const resp = await fetch('https://aviationweather.gov/api/data/airsigmet?format=json&type=sigmet');
+    if (!resp.ok) throw new Error('SIGMET API error');
+    const sigmets = await resp.json();
+    LAYERS.sigmets.data = sigmets;
+
+    const withCoords = sigmets.filter(s => s.coords && s.coords.length > 2);
+    LAYERS.sigmets.count = withCoords.length;
+    renderLayerPanel();
+    renderSigmetPolygons(withCoords);
+  } catch(e) {
+    console.warn('SIGMET layer error:', e);
+    LAYERS.sigmets.count = 'err';
+    renderLayerPanel();
+  }
+}
+
+function renderSigmetPolygons(sigmets) {
+  const polygons = sigmets.map(s => {
+    const coords = s.coords.map(c => [c.lon || c.lng, c.lat]);
+    const hazard = s.hazard || s.airSigmetType || 'SIGMET';
+    const severity = s.severity || '';
+    const rawText = s.rawAirSigmet || s.rawText || JSON.stringify(s, null, 2);
+    const isConvective = hazard.toUpperCase().includes('CONVECTIVE') || hazard.toUpperCase().includes('TS');
+    return {
+      coords,
+      properties: {
+        hazard: `${hazard} ${severity}`.trim(),
+        rawText,
+        color: isConvective ? 'rgba(239,68,68,0.25)' : 'rgba(251,146,60,0.2)',
+        strokeColor: isConvective ? '#ef4444' : '#fb923c',
+      }
+    };
+  }).filter(p => p.coords.length > 2);
+
+  globe
+    .polygonsData(polygons)
+    .polygonCapColor(d => d.properties.color)
+    .polygonSideColor(() => 'rgba(255,255,255,0.03)')
+    .polygonStrokeColor(d => d.properties.strokeColor)
+    .polygonAltitude(0.01)
+    .polygonLabel(d => `<div class="globe-tooltip"><b>${d.properties.hazard}</b></div>`)
+    .onPolygonClick(d => showSigmetPopup(d));
+}
+
+function showSigmetPopup(d) {
+  const popup = document.getElementById('sigmetPopup');
+  popup.innerHTML = `
+    <button class="sp-close" onclick="document.getElementById('sigmetPopup').style.display='none'">✕</button>
+    <div class="sp-title">${d.properties.hazard}</div>
+    <pre>${d.properties.rawText}</pre>
+  `;
+  popup.style.display = 'block';
+  popup.style.left = '50%';
+  popup.style.top = '50%';
+  popup.style.transform = 'translate(-50%, -50%)';
+}
+
+// ── LAYER 4: Jet Stream / Wind Patterns ──
+
+function removeWindLayer() {
+  if (windParticleSystem) {
+    globe.scene().remove(windParticleSystem);
+    windParticleSystem.geometry.dispose();
+    windParticleSystem.material.dispose();
+    windParticleSystem = null;
+  }
+  if (windAnimId) { cancelAnimationFrame(windAnimId); windAnimId = null; }
+}
+
+let windAnimId = null;
+let windVelocities = [];
+
+async function initWindLayer() {
+  // Try the API first, fallback to simulated jet stream
+  let windData = null;
+  try {
+    const resp = await fetch('https://aviationweather.gov/api/data/windtemp?level=300&fcst=06&region=all&format=json');
+    if (resp.ok) windData = await resp.json();
+  } catch(e) { /* fallback to simulation */ }
+
+  // Generate particles along known jet stream paths
+  const jetStreamPaths = [
+    // Northern hemisphere polar jet (west to east)
+    ...generateJetStreamBand(35, 55, -120, 140, 200, 80, 120),
+    // Subtropical jet
+    ...generateJetStreamBand(25, 35, -100, 120, 120, 50, 80),
+    // Southern hemisphere
+    ...generateJetStreamBand(-55, -35, -60, 160, 120, 60, 100),
+  ];
+
+  LAYERS.wind.count = jetStreamPaths.length;
+  renderLayerPanel();
+  renderWindParticles(jetStreamPaths);
+}
+
+function generateJetStreamBand(latMin, latMax, lngMin, lngMax, count, speedMin, speedMax) {
+  const particles = [];
+  for (let i = 0; i < count; i++) {
+    const lat = latMin + Math.random() * (latMax - latMin);
+    const lng = lngMin + Math.random() * (lngMax - lngMin);
+    const speed = speedMin + Math.random() * (speedMax - speedMin);
+    // Predominant west-to-east with some meandering
+    const dir = 260 + (Math.random() - 0.5) * 40; // roughly westerly
+    particles.push({ lat, lng, speed, dir });
+  }
+  return particles;
+}
+
+function renderWindParticles(particles) {
+  removeWindLayer();
+  if (!globe) return;
+  const scene = globe.scene();
+  const globeRadius = 100;
+  const count = particles.length;
+
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(count * 3);
+  windVelocities = [];
+
+  particles.forEach((p, i) => {
+    const phi = (90 - p.lat) * Math.PI / 180;
+    const theta = (p.lng + 180) * Math.PI / 180;
+    const r = globeRadius * 1.025;
+    positions[i*3]     = -r * Math.sin(phi) * Math.cos(theta);
+    positions[i*3 + 1] = r * Math.cos(phi);
+    positions[i*3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+    windVelocities.push({
+      lat: p.lat,
+      lng: p.lng,
+      speed: p.speed,
+      dir: p.dir,
+      origLat: p.lat,
+      origLng: p.lng,
+    });
+  });
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const material = new THREE.PointsMaterial({
+    color: 0xa78bfa,
+    size: 1.2,
+    transparent: true,
+    opacity: 0.4,
+    sizeAttenuation: true,
+    depthWrite: false,
+  });
+
+  windParticleSystem = new THREE.Points(geometry, material);
+  scene.add(windParticleSystem);
+
+  animateWind();
+}
+
+function animateWind() {
+  if (!windParticleSystem || !LAYERS.wind.enabled) return;
+  const positions = windParticleSystem.geometry.attributes.position.array;
+  const globeRadius = 100;
+  const r = globeRadius * 1.025;
+
+  windVelocities.forEach((v, i) => {
+    // Move particle along its direction
+    const speedFactor = v.speed * 0.0003;
+    const dirRad = v.dir * Math.PI / 180;
+    v.lng += Math.cos(dirRad) * speedFactor;
+    v.lat += Math.sin(dirRad) * speedFactor * 0.3;
+
+    // Wrap and reset if too far from origin
+    if (Math.abs(v.lng - v.origLng) > 60) {
+      v.lng = v.origLng;
+      v.lat = v.origLat + (Math.random() - 0.5) * 5;
+    }
+
+    const phi = (90 - v.lat) * Math.PI / 180;
+    const theta = (v.lng + 180) * Math.PI / 180;
+    positions[i*3]     = -r * Math.sin(phi) * Math.cos(theta);
+    positions[i*3 + 1] = r * Math.cos(phi);
+    positions[i*3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+  });
+
+  windParticleSystem.geometry.attributes.position.needsUpdate = true;
+  windAnimId = requestAnimationFrame(animateWind);
+}
+
+// ── LAYER 5: NOTAMs ──
+
+const NOTAM_HUBS = ['KMEM','KIND','PANC','KAFW','KGSO','KMIA','KEWR','KOAK','KONT'];
+
+function removeNotamMarkers() {
+  if (notamMarkers) {
+    notamMarkers.forEach(m => {
+      globe.scene().remove(m);
+      if (m.geometry) m.geometry.dispose();
+      if (m.material) m.material.dispose();
+    });
+    notamMarkers = null;
+  }
+}
+
+async function fetchNotams() {
+  let notams = null;
+  try {
+    const resp = await fetch(`https://aviationweather.gov/api/data/notam?ids=${NOTAM_HUBS.join(',')}&format=json`);
+    if (resp.ok) {
+      notams = await resp.json();
+    }
+  } catch(e) { /* fallback */ }
+
+  // If API unavailable, generate realistic samples
+  if (!notams || !Array.isArray(notams) || notams.length === 0) {
+    notams = generateSampleNotams();
+  }
+
+  // Group by airport
+  const byAirport = {};
+  notams.forEach(n => {
+    const id = n.icaoId || n.facilityDesignator || n.airport || 'UNK';
+    if (!byAirport[id]) byAirport[id] = [];
+    byAirport[id].push(n);
+  });
+
+  LAYERS.notams.data = byAirport;
+  LAYERS.notams.count = notams.length;
+  renderLayerPanel();
+  renderNotamMarkers(byAirport);
+}
+
+function generateSampleNotams() {
+  const samples = [
+    { icaoId:'KMEM', text:'RWY 09/27 CLSD FOR MAINT 0200-0600Z DAILY', type:'RWY', severity:'LOW' },
+    { icaoId:'KMEM', text:'TWY A BTN TWY B AND TWY C CLSD', type:'TWY', severity:'LOW' },
+    { icaoId:'KIND', text:'ILS RWY 05L LOC UNUSABLE BEYOND 15NM BELOW 3000FT', type:'NAV', severity:'MED' },
+    { icaoId:'PANC', text:'ARCTIC WILDLIFE ON AND INVOF ARPT', type:'OBST', severity:'LOW' },
+    { icaoId:'KMIA', text:'CRANE 250FT AGL 0.5NM NE OF ARPT', type:'OBST', severity:'MED' },
+    { icaoId:'KEWR', text:'NOISE ABATEMENT PROC IN EFFECT 2200-0600 LOCAL', type:'PROC', severity:'LOW' },
+    { icaoId:'KOAK', text:'APRON SOUTH RAMP CONST WIP', type:'APRON', severity:'LOW' },
+    { icaoId:'KAFW', text:'AUTOMATED WX BCST SYS OUT OF SERVICE', type:'SVC', severity:'MED' },
+    { icaoId:'KGSO', text:'RWY 05L/23R EDGE LGT OUT OF SVC', type:'RWY', severity:'MED' },
+  ];
+  return samples;
+}
+
+function renderNotamMarkers(byAirport) {
+  removeNotamMarkers();
+  if (!globe) return;
+  notamMarkers = [];
+  const scene = globe.scene();
+  const globeRadius = 100;
+
+  Object.entries(byAirport).forEach(([icao, notamList]) => {
+    const iata = ICAO_TO_IATA[icao];
+    const hub = iata ? hubMap[iata] : null;
+    if (!hub) return;
+
+    // Yellow warning triangle
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 1);
+    shape.lineTo(-0.7, -0.5);
+    shape.lineTo(0.7, -0.5);
+    shape.closePath();
+    const geo = new THREE.ShapeGeometry(shape);
+    const mat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+    const mesh = new THREE.Mesh(geo, mat);
+
+    const phi = (90 - hub.lat) * Math.PI / 180;
+    const theta = (hub.lng + 180) * Math.PI / 180;
+    const r = globeRadius * 1.02;
+    mesh.position.set(
+      -r * Math.sin(phi) * Math.cos(theta),
+      r * Math.cos(phi),
+      r * Math.sin(phi) * Math.sin(theta)
+    );
+    mesh.lookAt(0, 0, 0);
+    mesh.scale.set(0.5, 0.5, 0.5);
+
+    mesh.userData = { icao, hub, notams: notamList };
+    scene.add(mesh);
+    notamMarkers.push(mesh);
+  });
+}
+
+// NOTAM click handling via raycaster
+function setupNotamClick() {
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  document.getElementById('globe-container').addEventListener('click', (e) => {
+    if (!notamMarkers || !LAYERS.notams.enabled) return;
+
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+    const camera = globe.camera();
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(notamMarkers);
+
+    if (intersects.length > 0) {
+      const data = intersects[0].object.userData;
+      showNotamPopup(data);
+    }
+  });
+}
+
+function showNotamPopup(data) {
+  const popup = document.getElementById('notamPopup');
+  const notamHtml = data.notams.map(n =>
+    `<div style="margin-bottom:8px;padding:6px 8px;background:rgba(251,191,36,0.06);border-radius:6px;border-left:2px solid #fbbf24;">
+      <div style="font-weight:600;color:#fbbf24;font-size:0.65rem;margin-bottom:2px;">${n.type || 'NOTAM'}</div>
+      <div style="color:#94a3b8;">${n.text || n.traditionalMessage || JSON.stringify(n)}</div>
+    </div>`
+  ).join('');
+
+  popup.innerHTML = `
+    <button class="np-close" onclick="document.getElementById('notamPopup').style.display='none'">✕</button>
+    <div class="np-title">${data.hub.name} (${data.hub.id}) NOTAMs</div>
+    ${notamHtml}
+  `;
+  popup.style.display = 'block';
+  popup.style.left = '50%';
+  popup.style.top = '50%';
+  popup.style.transform = 'translate(-50%, -50%)';
+}
+
+// ── Layer initialization ──
+
+function initLayers() {
+  renderLayerPanel();
+  setupFlightTooltip();
+  setupNotamClick();
+
+  // Activate default-on layers
+  Object.entries(LAYERS).forEach(([key, layer]) => {
+    if (layer.enabled) activateLayer(key);
+  });
+}
+
 function main() {
   createStars();
   initGlobe();
@@ -1185,6 +2032,9 @@ function main() {
 
   // Refresh feed every 15s
   setInterval(generateFeed, 15000);
+
+  // Initialize data layers
+  initLayers();
 
   // Start at Memphis with cinematic sweep
   globe.pointOfView({ lat: 35.04, lng: -89.97, altitude: 2.2 }, 0);
