@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/api/opensky/:path*", "destination": "https://opensky-network.org/api/:path*" },
+    { "source": "/api/metar", "destination": "https://aviationweather.gov/api/data/metar" },
+    { "source": "/api/airsigmet", "destination": "https://aviationweather.gov/api/data/airsigmet" },
+    { "source": "/api/windtemp", "destination": "https://aviationweather.gov/api/data/windtemp" },
+    { "source": "/api/notam", "destination": "https://aviationweather.gov/api/data/notam" }
+  ]
+}
