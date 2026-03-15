@@ -920,6 +920,7 @@ const HUBS = [
   { id:'EWR', name:'Newark', fullName:'Newark Liberty International Airport', lat:40.6895, lng:-74.1745, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~90/day', desc:'Northeast corridor anchor. Transatlantic gateway connecting to European hub network.', region:'domestic' },
   { id:'OAK', name:'Oakland', fullName:'Oakland San Francisco Bay Airport', lat:37.7213, lng:-122.2208, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~70/day', desc:'West Coast / Pacific hub. Key origin for transpacific routes to Asia.', region:'domestic' },
   { id:'ONT', name:'Ontario, CA', fullName:'Ontario International Airport', lat:34.0560, lng:-117.6012, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~40/day', desc:'Southern California regional hub. Serves LA metro and Inland Empire — one of the fastest growing e-commerce markets.', region:'domestic' },
+  { id:'SLC', name:'Salt Lake City', fullName:'Salt Lake City International Airport', lat:40.7884, lng:-111.9778, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~35/day', desc:'Mountain West hub. New 800,000 sq ft distribution center opened 2025. Serves Utah, Idaho, Wyoming, and supports growing e-commerce demand across the Intermountain West.', region:'domestic' },
   // International Hubs — Europe
   { id:'CDG', name:'Paris CDG', fullName:'Charles de Gaulle Airport', lat:49.0097, lng:2.5479, tier:'international', tierLabel:'International Hub', country:'France', flights:'~60/day', desc:'European Super Hub. Main gateway for FedEx operations across Europe, Middle East, and Africa (EMEA).', region:'europe' },
   { id:'CGN', name:'Cologne/Bonn', fullName:'Cologne Bonn Airport', lat:50.8659, lng:7.1427, tier:'international', tierLabel:'International Hub', country:'Germany', flights:'~50/day', desc:'Central European hub. Key sorting facility for intra-European distribution.', region:'europe' },
@@ -967,6 +968,7 @@ const ROUTES = [
   { from:'MEM', to:'NRT', group:'memphis', color:['#FF6200','#ff9a44'] },
   { from:'MEM', to:'CAN', group:'memphis', color:['#FF6200','#ff9a44'] },
   { from:'MEM', to:'YYZ', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'SLC', group:'memphis', color:['#FF6200','#ff9a44'] },
   // Indianapolis Spokes
   { from:'IND', to:'EWR', group:'indianapolis', color:['#4D148C','#9b59b6'] },
   { from:'IND', to:'MIA', group:'indianapolis', color:['#4D148C','#9b59b6'] },
@@ -975,6 +977,7 @@ const ROUTES = [
   { from:'IND', to:'GSO', group:'indianapolis', color:['#4D148C','#9b59b6'] },
   { from:'IND', to:'ONT', group:'indianapolis', color:['#4D148C','#9b59b6'] },
   { from:'IND', to:'ANC', group:'indianapolis', color:['#4D148C','#9b59b6'] },
+  { from:'IND', to:'SLC', group:'indianapolis', color:['#4D148C','#9b59b6'] },
   // Transpacific
   { from:'ANC', to:'NRT', group:'transpacific', color:['#22D3EE','#06b6d4'] },
   { from:'ANC', to:'PVG', group:'transpacific', color:['#22D3EE','#06b6d4'] },
@@ -1629,12 +1632,12 @@ function setupFlightTooltip() {
 
 // ── LAYER 2: Hub Weather (METAR) ──
 
-const METAR_IDS = 'KMEM,KIND,PANC,KAFW,KGSO,KMIA,KEWR,KOAK,KONT,LFPG,EDDK,EBLG,EGSS,LTFM,OMDB,VABB,VOBL,VIDP,ZGGG,ZSPD,VHHH,WSSS,RJBB,RJAA,RCTP,RKSI,CYYZ,LIMC';
+const METAR_IDS = 'KMEM,KIND,PANC,KAFW,KGSO,KMIA,KEWR,KOAK,KONT,KSLC,LFPG,EDDK,EBLG,EGSS,LTFM,OMDB,VABB,VOBL,VIDP,ZGGG,ZSPD,VHHH,WSSS,RJBB,RJAA,RCTP,RKSI,CYYZ,LIMC';
 
 // Map ICAO to IATA
 const ICAO_TO_IATA = {
   KMEM:'MEM', KIND:'IND', PANC:'ANC', KAFW:'AFW', KGSO:'GSO', KMIA:'MIA',
-  KEWR:'EWR', KOAK:'OAK', KONT:'ONT', LFPG:'CDG', EDDK:'CGN', EBLG:'LGG',
+  KEWR:'EWR', KOAK:'OAK', KONT:'ONT', KSLC:'SLC', LFPG:'CDG', EDDK:'CGN', EBLG:'LGG',
   EGSS:'STN', LTFM:'IST', OMDB:'DXB', VABB:'BOM', VOBL:'BLR', VIDP:'DEL',
   ZGGG:'CAN', ZSPD:'PVG', VHHH:'HKG', WSSS:'SIN', RJBB:'KIX', RJAA:'NRT',
   RCTP:'TPE', RKSI:'ICN', CYYZ:'YYZ', LIMC:'MXP',
@@ -1666,6 +1669,7 @@ function generateSampleMetars() {
     { icaoId:'KEWR', fltCat:'IFR', temp:12, dewp:10, wdir:60, wspd:14, altim:1012, rawOb:'KEWR 150856Z 06014KT 2SM RA BR OVC008 12/10 A2990' },
     { icaoId:'KOAK', fltCat:'VFR', temp:16, dewp:9, wdir:280, wspd:11, altim:1020, rawOb:'KOAK 150856Z 28011KT 10SM FEW015 16/09 A3012' },
     { icaoId:'KONT', fltCat:'VFR', temp:20, dewp:8, wdir:250, wspd:6, altim:1018, rawOb:'KONT 150856Z 25006KT 10SM CLR 20/08 A3006' },
+    { icaoId:'KSLC', fltCat:'VFR', temp:10, dewp:1, wdir:170, wspd:9, altim:1024, rawOb:'KSLC 150856Z 17009KT 10SM FEW120 10/01 A3024' },
     { icaoId:'LFPG', fltCat:'MVFR', temp:10, dewp:7, wdir:200, wspd:15, altim:1013, rawOb:'LFPG 150856Z 20015KT 6000 SCT012 10/07 Q1013' },
     { icaoId:'EDDK', fltCat:'VFR', temp:8, dewp:3, wdir:240, wspd:10, altim:1016, rawOb:'EDDK 150856Z 24010KT 9999 FEW035 08/03 Q1016' },
     { icaoId:'EBLG', fltCat:'VFR', temp:9, dewp:4, wdir:220, wspd:12, altim:1015, rawOb:'EBLG 150856Z 22012KT 9999 SCT040 09/04 Q1015' },
@@ -1945,7 +1949,7 @@ function animateWind() {
 
 // ── LAYER 5: NOTAMs ──
 
-const NOTAM_HUBS = ['KMEM','KIND','PANC','KAFW','KGSO','KMIA','KEWR','KOAK','KONT'];
+const NOTAM_HUBS = ['KMEM','KIND','PANC','KAFW','KGSO','KMIA','KEWR','KOAK','KONT','KSLC'];
 
 function removeNotamMarkers() {
   if (notamMarkers) {
@@ -1997,6 +2001,7 @@ function generateSampleNotams() {
     { icaoId:'KOAK', text:'APRON SOUTH RAMP CONST WIP', type:'APRON', severity:'LOW' },
     { icaoId:'KAFW', text:'AUTOMATED WX BCST SYS OUT OF SERVICE', type:'SVC', severity:'MED' },
     { icaoId:'KGSO', text:'RWY 05L/23R EDGE LGT OUT OF SVC', type:'RWY', severity:'MED' },
+    { icaoId:'KSLC', text:'RWY 16L/34R CONST WIP BTN TWY A AND TWY B', type:'RWY', severity:'LOW' },
   ];
   return samples;
 }
