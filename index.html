@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Summerlands FedEx Command Center</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Summerlands FedEx Command Center">
+  <meta property="og:description" content="Interactive 3D globe showing FedEx's global flight network — 28 hubs, 100+ routes, real-time command center view.">
+  <meta name="theme-color" content="#0a0a1a">
+
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/globe.gl@2.35.1/dist/globe.gl.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #0a0a1a;
+      color: #e0e0ff;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .stars {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--duration) ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      0% { opacity: 0.2; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0.7) 80%, transparent 100%);
+      backdrop-filter: blur(10px);
+    }
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #FF6200, #4D148C, #FF6200);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+    }
+    .logo-sub {
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 4px;
+      color: #6b7db3;
+      text-transform: uppercase;
+    }
+    .header-stats {
+      display: flex;
+      gap: 16px;
+      font-family: 'Orbitron', monospace;
+    }
+    .stat-box {
+      text-align: center;
+      padding: 6px 14px;
+      border: 1px solid rgba(77,20,140,0.3);
+      border-radius: 8px;
+      background: rgba(77,20,140,0.08);
+    }
+    .stat-box .num {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #FF6200;
+    }
+    .stat-box .label {
+      font-size: 0.5rem;
+      color: #6b7db3;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Clock */
+    .clock-box {
+      text-align: center;
+      padding: 6px 14px;
+      border: 1px solid rgba(255,98,0,0.2);
+      border-radius: 8px;
+      background: rgba(255,98,0,0.05);
+    }
+    .clock-box .time {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #FF6200;
+    }
+    .clock-box .tz {
+      font-size: 0.45rem;
+      color: #6b7db3;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Globe */
+    #globe-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 70px;
+      right: 0;
+      width: 380px;
+      height: calc(100vh - 70px);
+      z-index: 50;
+      background: linear-gradient(135deg, rgba(10,10,30,0.92) 0%, rgba(20,15,40,0.92) 100%);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(77,20,140,0.2);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sidebar.collapsed { transform: translateX(340px); }
+    .sidebar-toggle {
+      position: absolute;
+      left: -40px;
+      top: 20px;
+      width: 40px; height: 40px;
+      background: rgba(20,15,40,0.9);
+      border: 1px solid rgba(77,20,140,0.3);
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      color: #FF6200;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      padding: 12px 16px 0;
+      gap: 4px;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      color: #6b7db3;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .tab.active {
+      background: rgba(77,20,140,0.15);
+      color: #c4b5ff;
+      border-color: rgba(77,20,140,0.3);
+    }
+    .tab:hover { color: #fff; }
+
+    /* Hub list */
+    .hub-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(77,20,140,0.3) transparent;
+    }
+    .hub-list::-webkit-scrollbar { width: 4px; }
+    .hub-list::-webkit-scrollbar-thumb { background: rgba(77,20,140,0.3); border-radius: 2px; }
+
+    .hub-card {
+      padding: 14px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .hub-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      border-radius: 3px 0 0 3px;
+    }
+    .hub-card.superhub::before { background: linear-gradient(180deg, #FF6200, #ff9a44); }
+    .hub-card.national::before { background: linear-gradient(180deg, #4D148C, #9b59b6); }
+    .hub-card.regional::before { background: linear-gradient(180deg, #22D3EE, #06b6d4); }
+    .hub-card.international::before { background: linear-gradient(180deg, #7b61ff, #c4b5ff); }
+
+    .hub-card:hover {
+      background: rgba(77,20,140,0.08);
+      border-color: rgba(77,20,140,0.25);
+      transform: translateX(-4px);
+    }
+    .hub-card.active {
+      background: rgba(77,20,140,0.12);
+      border-color: rgba(77,20,140,0.4);
+      box-shadow: 0 0 20px rgba(77,20,140,0.1);
+    }
+
+    .hub-tier {
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .hub-card.superhub .hub-tier { color: #FF6200; }
+    .hub-card.national .hub-tier { color: #9b59b6; }
+    .hub-card.regional .hub-tier { color: #22D3EE; }
+    .hub-card.international .hub-tier { color: #c4b5ff; }
+
+    .hub-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+    .hub-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.75rem;
+      color: #6b7db3;
+    }
+    .hub-iata {
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      padding: 8px 16px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 5px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: transparent;
+      color: #6b7db3;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn.active {
+      background: rgba(77,20,140,0.2);
+      border-color: rgba(77,20,140,0.4);
+      color: #c4b5ff;
+    }
+    .filter-btn:hover { border-color: rgba(77,20,140,0.3); color: #fff; }
+
+    /* Search */
+    .search-box { padding: 0 16px 8px; }
+    .search-box input {
+      width: 100%;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .search-box input::placeholder { color: #4a5580; }
+    .search-box input:focus { border-color: rgba(77,20,140,0.4); }
+
+    /* Detail panel */
+    .detail-panel {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: calc(100% - 380px);
+      z-index: 50;
+      padding: 20px 30px;
+      background: linear-gradient(0deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0.8) 80%, transparent 100%);
+      backdrop-filter: blur(10px);
+      transform: translateY(100%);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .detail-panel.show { transform: translateY(0); }
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .detail-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .detail-tier {
+      font-size: 0.7rem;
+      color: #FF6200;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .detail-close {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .detail-item {
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .detail-item .label {
+      font-size: 0.6rem;
+      color: #6b7db3;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .detail-item .value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #e0e0ff;
+    }
+    .fun-fact {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(77,20,140,0.08), rgba(255,98,0,0.08));
+      border-radius: 10px;
+      border: 1px solid rgba(77,20,140,0.15);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .fun-fact strong { color: #FF6200; }
+
+    /* Route legend panel */
+    .legend-panel {
+      position: fixed;
+      bottom: 20px; left: 20px;
+      z-index: 80;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(10,10,30,0.92) 0%, rgba(20,15,40,0.92) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(77,20,140,0.15);
+      border-radius: 12px;
+      min-width: 200px;
+    }
+    .legend-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #c4b5ff;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-line {
+      width: 20px; height: 2px;
+      border-radius: 1px;
+      flex-shrink: 0;
+    }
+
+    /* Live feed panel */
+    .feed-panel {
+      position: fixed;
+      top: 74px; left: 16px;
+      z-index: 80;
+      width: 280px;
+      max-height: 400px;
+      background: linear-gradient(135deg, rgba(10,10,30,0.92) 0%, rgba(20,15,40,0.92) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(77,20,140,0.15);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .feed-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .feed-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #c4b5ff;
+      text-transform: uppercase;
+    }
+    .feed-live {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.6rem;
+      color: #22D3EE;
+      font-weight: 600;
+    }
+    .feed-live-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #22D3EE;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 4px #22D3EE; }
+      50% { opacity: 0.4; box-shadow: none; }
+    }
+    .feed-body {
+      max-height: 340px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(77,20,140,0.3) transparent;
+    }
+    .feed-item {
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      font-size: 0.72rem;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+    .feed-item .feed-time {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.55rem;
+      color: #4a5580;
+      margin-right: 6px;
+    }
+    .feed-item .feed-route {
+      color: #FF6200;
+      font-weight: 600;
+    }
+    .feed-item .feed-status {
+      color: #22D3EE;
+    }
+
+    /* Loading screen */
+    .loading-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #0a0a1a;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s, visibility 0.8s;
+    }
+    .loading-screen.hidden { opacity: 0; visibility: hidden; }
+    .loading-icon {
+      font-size: 3rem;
+      animation: planeFly 2s ease-in-out infinite;
+    }
+    @keyframes planeFly {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-15px) rotate(-5deg); }
+      75% { transform: translateY(5px) rotate(3deg); }
+    }
+    .loading-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      color: #4D148C;
+      margin-top: 20px;
+      letter-spacing: 4px;
+    }
+    .loading-bar {
+      width: 200px; height: 3px;
+      background: rgba(77,20,140,0.2);
+      border-radius: 3px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+    .loading-bar-fill {
+      width: 0%; height: 100%;
+      background: linear-gradient(90deg, #4D148C, #FF6200);
+      border-radius: 3px;
+      animation: loadBar 2s ease-in-out forwards;
+    }
+    @keyframes loadBar {
+      0% { width: 0%; }
+      40% { width: 50%; }
+      80% { width: 85%; }
+      100% { width: 100%; }
+    }
+
+    .globe-tooltip {
+      background: rgba(10,10,30,0.9) !important;
+      border: 1px solid rgba(77,20,140,0.3) !important;
+      border-radius: 8px !important;
+      padding: 8px 12px !important;
+      font-family: 'Space Grotesk', sans-serif !important;
+      color: #e0e0ff !important;
+      font-size: 0.8rem !important;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        width: 100%;
+        top: auto; bottom: 0;
+        height: 45vh;
+        border-left: none;
+        border-top: 1px solid rgba(77,20,140,0.15);
+      }
+      .sidebar.collapsed { transform: translateY(calc(45vh - 50px)); }
+      .sidebar-toggle {
+        left: 50%; top: -30px;
+        transform: translateX(-50%);
+        border-radius: 8px 8px 0 0;
+        border: 1px solid rgba(77,20,140,0.3);
+        border-bottom: none;
+        width: 60px; height: 30px;
+      }
+      .detail-panel { width: 100%; display: none; }
+      .header-stats { display: none; }
+      .logo { font-size: 0.9rem; }
+      .feed-panel { display: none; }
+      .legend-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-icon">✈️</div>
+    <div class="loading-text">INITIALIZING</div>
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  </div>
+
+  <div class="stars" id="stars"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="logo">SUMMERLANDS FEDEX COMMAND CENTER</div>
+      <div class="logo-sub">Global Flight Network Operations</div>
+    </div>
+    <div class="header-stats">
+      <div class="clock-box">
+        <div class="time" id="memphisClock">--:--:--</div>
+        <div class="tz">Memphis CT</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">28</div>
+        <div class="label">Global Hubs</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">17</div>
+        <div class="label">Countries</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">702</div>
+        <div class="label">Aircraft</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">~1,200</div>
+        <div class="label">Daily Flights</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="globe-container"></div>
+
+  <!-- Live Feed -->
+  <div class="feed-panel" id="feedPanel">
+    <div class="feed-header">
+      <span class="feed-title">Flight Activity</span>
+      <span class="feed-live"><span class="feed-live-dot"></span> LIVE</span>
+    </div>
+    <div class="feed-body" id="feedBody"></div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebarToggle">◀</button>
+    <div class="tabs">
+      <button class="tab active" data-tab="hubs">🏢 All Hubs</button>
+      <button class="tab" data-tab="routes">✈️ Routes</button>
+    </div>
+    <div class="search-box">
+      <input type="text" placeholder="Search hubs, cities, IATA codes..." id="searchInput">
+    </div>
+    <div class="filter-bar" id="filterBar">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="superhub">Super Hub</button>
+      <button class="filter-btn" data-filter="national">National</button>
+      <button class="filter-btn" data-filter="regional">Regional</button>
+      <button class="filter-btn" data-filter="international">International</button>
+    </div>
+    <div class="hub-list" id="hubList"></div>
+  </div>
+
+  <!-- Detail -->
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-header">
+      <div>
+        <div class="detail-tier" id="detailTier"></div>
+        <div class="detail-title" id="detailTitle"></div>
+      </div>
+      <button class="detail-close" id="detailClose">✕</button>
+    </div>
+    <div class="detail-grid" id="detailGrid"></div>
+    <div class="fun-fact" id="funFact"></div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend-panel">
+    <div class="legend-title">Hub Tiers</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FF6200;box-shadow:0 0 8px rgba(255,98,0,0.6);width:14px;height:14px;"></div> Super Hub (Memphis)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#9b59b6;width:12px;height:12px;"></div> National Hub</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#22D3EE;width:10px;height:10px;"></div> US Regional Hub</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#7b61ff;width:9px;height:9px;"></div> International Hub</div>
+    <div style="margin-top:10px;">
+      <div class="legend-title">Route Types</div>
+      <div class="legend-item"><div class="legend-line" style="background:#FF6200;"></div> Memphis Spokes</div>
+      <div class="legend-item"><div class="legend-line" style="background:#9b59b6;"></div> Indianapolis Spokes</div>
+      <div class="legend-item"><div class="legend-line" style="background:#22D3EE;"></div> Transpacific / Transatlantic</div>
+      <div class="legend-item"><div class="legend-line" style="background:#c4b5ff;"></div> Intra-Regional</div>
+    </div>
+  </div>
+
+<script>
+// ══════════════════════════════════════
+//  FEDEX HUB DATA
+// ══════════════════════════════════════
+
+const HUBS = [
+  // Super Hub
+  { id:'MEM', name:'Memphis', fullName:'Memphis International Airport', lat:35.0424, lng:-89.9767, tier:'superhub', tierLabel:'Global Super Hub', country:'USA', flights:'~400/night', desc:'FedEx World Headquarters. Largest cargo sort facility on Earth — processes 1.5M+ packages nightly. The heart of the FedEx network since 1973.', region:'domestic' },
+  // National Hub
+  { id:'IND', name:'Indianapolis', fullName:'Indianapolis International Airport', lat:39.7173, lng:-86.2944, tier:'national', tierLabel:'National Hub', country:'USA', flights:'~200/night', desc:'Second-largest US hub. Massive ground sort facility opened 2005. Handles overflow and eastern US distribution.', region:'domestic' },
+  // US Regional Hubs
+  { id:'ANC', name:'Anchorage', fullName:'Ted Stevens Anchorage International Airport', lat:61.1743, lng:-149.9962, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~50/day', desc:'Critical Asia–Americas gateway. Refueling stop for transpacific cargo flights. Equidistant from 90% of the industrialized world.', region:'domestic' },
+  { id:'AFW', name:'Fort Worth–Alliance', fullName:'Perot Field Fort Worth Alliance Airport', lat:32.9876, lng:-97.3186, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~60/day', desc:'South/Central US distribution hub. Purpose-built cargo airport — no commercial passenger traffic.', region:'domestic' },
+  { id:'GSO', name:'Greensboro', fullName:'Piedmont Triad International Airport', lat:36.0978, lng:-79.9373, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~40/day', desc:'Mid-Atlantic regional hub. Serves East Coast next-day delivery network.', region:'domestic' },
+  { id:'MIA', name:'Miami', fullName:'Miami International Airport', lat:25.7959, lng:-80.2870, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~80/day', desc:'Latin America and Caribbean gateway. Major international freight throughput for Central/South American routes.', region:'domestic' },
+  { id:'EWR', name:'Newark', fullName:'Newark Liberty International Airport', lat:40.6895, lng:-74.1745, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~90/day', desc:'Northeast corridor anchor. Transatlantic gateway connecting to European hub network.', region:'domestic' },
+  { id:'OAK', name:'Oakland', fullName:'Oakland San Francisco Bay Airport', lat:37.7213, lng:-122.2208, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~70/day', desc:'West Coast / Pacific hub. Key origin for transpacific routes to Asia.', region:'domestic' },
+  { id:'ONT', name:'Ontario, CA', fullName:'Ontario International Airport', lat:34.0560, lng:-117.6012, tier:'regional', tierLabel:'US Regional Hub', country:'USA', flights:'~40/day', desc:'Southern California regional hub. Serves LA metro and Inland Empire — one of the fastest growing e-commerce markets.', region:'domestic' },
+  // International Hubs — Europe
+  { id:'CDG', name:'Paris CDG', fullName:'Charles de Gaulle Airport', lat:49.0097, lng:2.5479, tier:'international', tierLabel:'International Hub', country:'France', flights:'~60/day', desc:'European Super Hub. Main gateway for FedEx operations across Europe, Middle East, and Africa (EMEA).', region:'europe' },
+  { id:'CGN', name:'Cologne/Bonn', fullName:'Cologne Bonn Airport', lat:50.8659, lng:7.1427, tier:'international', tierLabel:'International Hub', country:'Germany', flights:'~50/day', desc:'Central European hub. Key sorting facility for intra-European distribution.', region:'europe' },
+  { id:'LGG', name:'Liège', fullName:'Liège Airport', lat:50.6374, lng:5.4433, tier:'international', tierLabel:'International Hub', country:'Belgium', flights:'~30/day', desc:'European cargo-dedicated hub. Strategic position in the Benelux logistics corridor.', region:'europe' },
+  { id:'STN', name:'London Stansted', fullName:'London Stansted Airport', lat:51.8850, lng:0.2350, tier:'international', tierLabel:'International Hub', country:'UK', flights:'~40/day', desc:'UK hub. Serves British Isles and connects to transatlantic routes.', region:'europe' },
+  { id:'MXP', name:'Milan Malpensa', fullName:'Milan Malpensa Airport', lat:45.6306, lng:8.7281, tier:'international', tierLabel:'International Hub', country:'Italy', flights:'~20/day', desc:'Southern European hub. Serves Italy and Mediterranean region.', region:'europe' },
+  { id:'IST', name:'Istanbul', fullName:'Istanbul Airport', lat:41.2611, lng:28.7420, tier:'international', tierLabel:'International Hub', country:'Turkey', flights:'~25/day', desc:'Europe–Middle East bridge hub. Crossroads connecting European and Asian networks.', region:'europe' },
+  // International Hubs — Middle East / India
+  { id:'DXB', name:'Dubai', fullName:'Dubai International Airport', lat:25.2532, lng:55.3657, tier:'international', tierLabel:'International Hub', country:'UAE', flights:'~45/day', desc:'Middle East/Africa gateway. Strategic hub connecting Asian manufacturing to European/African markets.', region:'mideast' },
+  { id:'BOM', name:'Mumbai', fullName:'Chhatrapati Shivaji Maharaj International Airport', lat:19.0896, lng:72.8656, tier:'international', tierLabel:'International Hub', country:'India', flights:'~30/day', desc:'India\'s primary FedEx hub. Serves the subcontinent\'s massive e-commerce and pharmaceutical exports.', region:'mideast' },
+  { id:'BLR', name:'Bengaluru', fullName:'Kempegowda International Airport', lat:13.1986, lng:77.7066, tier:'international', tierLabel:'International Hub', country:'India', flights:'~15/day', desc:'South India tech corridor hub. Major origin for IT hardware and pharmaceutical shipments.', region:'mideast' },
+  { id:'DEL', name:'Delhi', fullName:'Indira Gandhi International Airport', lat:28.5562, lng:77.1000, tier:'international', tierLabel:'International Hub', country:'India', flights:'~20/day', desc:'North India hub. Gateway for shipments across northern subcontinent and Central Asia.', region:'mideast' },
+  // International Hubs — Asia Pacific
+  { id:'CAN', name:'Guangzhou', fullName:'Guangzhou Baiyun International Airport', lat:23.3924, lng:113.2988, tier:'international', tierLabel:'International Hub', country:'China', flights:'~50/day', desc:'China\'s southern hub. Serves Pearl River Delta — world\'s largest manufacturing cluster.', region:'asia' },
+  { id:'PVG', name:'Shanghai Pudong', fullName:'Shanghai Pudong International Airport', lat:31.1443, lng:121.8083, tier:'international', tierLabel:'International Hub', country:'China', flights:'~40/day', desc:'East China hub. Gateway to Yangtze River Delta — China\'s economic powerhouse.', region:'asia' },
+  { id:'HKG', name:'Hong Kong', fullName:'Hong Kong International Airport', lat:22.3080, lng:113.9185, tier:'international', tierLabel:'International Hub', country:'Hong Kong', flights:'~35/day', desc:'Asia-Pacific super connector. Links China manufacturing to global markets.', region:'asia' },
+  { id:'SIN', name:'Singapore', fullName:'Changi Airport', lat:1.3502, lng:103.9940, tier:'international', tierLabel:'International Hub', country:'Singapore', flights:'~30/day', desc:'Southeast Asia hub. ASEAN distribution center — connects to Australia, India, and East Asia.', region:'asia' },
+  { id:'KIX', name:'Osaka Kansai', fullName:'Kansai International Airport', lat:34.4347, lng:135.2440, tier:'international', tierLabel:'International Hub', country:'Japan', flights:'~25/day', desc:'Japan hub. Serves Osaka-Kobe-Kyoto industrial corridor.', region:'asia' },
+  { id:'NRT', name:'Tokyo Narita', fullName:'Narita International Airport', lat:35.7720, lng:140.3929, tier:'international', tierLabel:'International Hub', country:'Japan', flights:'~30/day', desc:'Tokyo gateway. Primary Japanese import/export hub and transpacific relay point.', region:'asia' },
+  { id:'TPE', name:'Taipei Taoyuan', fullName:'Taoyuan International Airport', lat:25.0777, lng:121.2325, tier:'international', tierLabel:'International Hub', country:'Taiwan', flights:'~20/day', desc:'Taiwan hub. Key for semiconductor and electronics supply chain logistics.', region:'asia' },
+  { id:'ICN', name:'Seoul Incheon', fullName:'Incheon International Airport', lat:37.4602, lng:126.4407, tier:'international', tierLabel:'International Hub', country:'South Korea', flights:'~25/day', desc:'Korea hub. Samsung, LG, and K-tech supply chain logistics center.', region:'asia' },
+  // Americas
+  { id:'YYZ', name:'Toronto Pearson', fullName:'Toronto Pearson International Airport', lat:43.6777, lng:-79.6248, tier:'international', tierLabel:'International Hub', country:'Canada', flights:'~30/day', desc:'Canada hub. Serves Canadian domestic distribution and US–Canada cross-border trade.', region:'domestic' },
+];
+
+// ══════════════════════════════════════
+//  ROUTE DATA
+// ══════════════════════════════════════
+
+const ROUTES = [
+  // Memphis Super Hub Spokes
+  { from:'MEM', to:'IND', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'EWR', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'MIA', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'OAK', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'AFW', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'GSO', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'ONT', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'ANC', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'CDG', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'CGN', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'DXB', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'PVG', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'HKG', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'NRT', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'CAN', group:'memphis', color:['#FF6200','#ff9a44'] },
+  { from:'MEM', to:'YYZ', group:'memphis', color:['#FF6200','#ff9a44'] },
+  // Indianapolis Spokes
+  { from:'IND', to:'EWR', group:'indianapolis', color:['#4D148C','#9b59b6'] },
+  { from:'IND', to:'MIA', group:'indianapolis', color:['#4D148C','#9b59b6'] },
+  { from:'IND', to:'OAK', group:'indianapolis', color:['#4D148C','#9b59b6'] },
+  { from:'IND', to:'AFW', group:'indianapolis', color:['#4D148C','#9b59b6'] },
+  { from:'IND', to:'GSO', group:'indianapolis', color:['#4D148C','#9b59b6'] },
+  { from:'IND', to:'ONT', group:'indianapolis', color:['#4D148C','#9b59b6'] },
+  { from:'IND', to:'ANC', group:'indianapolis', color:['#4D148C','#9b59b6'] },
+  // Transpacific
+  { from:'ANC', to:'NRT', group:'transpacific', color:['#22D3EE','#06b6d4'] },
+  { from:'ANC', to:'PVG', group:'transpacific', color:['#22D3EE','#06b6d4'] },
+  { from:'ANC', to:'HKG', group:'transpacific', color:['#22D3EE','#06b6d4'] },
+  { from:'ANC', to:'ICN', group:'transpacific', color:['#22D3EE','#06b6d4'] },
+  { from:'ANC', to:'CAN', group:'transpacific', color:['#22D3EE','#06b6d4'] },
+  { from:'OAK', to:'HKG', group:'transpacific', color:['#22D3EE','#06b6d4'] },
+  { from:'OAK', to:'NRT', group:'transpacific', color:['#22D3EE','#06b6d4'] },
+  { from:'OAK', to:'PVG', group:'transpacific', color:['#22D3EE','#06b6d4'] },
+  // Transatlantic
+  { from:'EWR', to:'CDG', group:'transatlantic', color:['#22D3EE','#06b6d4'] },
+  { from:'EWR', to:'CGN', group:'transatlantic', color:['#22D3EE','#06b6d4'] },
+  { from:'EWR', to:'STN', group:'transatlantic', color:['#22D3EE','#06b6d4'] },
+  { from:'EWR', to:'LGG', group:'transatlantic', color:['#22D3EE','#06b6d4'] },
+  { from:'MIA', to:'CDG', group:'transatlantic', color:['#22D3EE','#06b6d4'] },
+  { from:'MIA', to:'CGN', group:'transatlantic', color:['#22D3EE','#06b6d4'] },
+  // Intra-Asia
+  { from:'HKG', to:'CAN', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'HKG', to:'PVG', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'HKG', to:'NRT', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'HKG', to:'SIN', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'HKG', to:'TPE', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'HKG', to:'BOM', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'PVG', to:'NRT', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'PVG', to:'ICN', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'PVG', to:'KIX', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'CAN', to:'SIN', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'CAN', to:'BOM', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'NRT', to:'KIX', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'NRT', to:'TPE', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'NRT', to:'ICN', group:'asia', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  // Intra-Europe
+  { from:'CDG', to:'CGN', group:'europe', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'CDG', to:'STN', group:'europe', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'CDG', to:'LGG', group:'europe', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'CDG', to:'MXP', group:'europe', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'CDG', to:'IST', group:'europe', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'CGN', to:'STN', group:'europe', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'CGN', to:'LGG', group:'europe', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  // Middle East / India
+  { from:'DXB', to:'BOM', group:'mideast', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'DXB', to:'DEL', group:'mideast', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'DXB', to:'BLR', group:'mideast', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'DXB', to:'IST', group:'mideast', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'DXB', to:'CDG', group:'mideast', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'BOM', to:'DEL', group:'mideast', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'BOM', to:'BLR', group:'mideast', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'BOM', to:'SIN', group:'mideast', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  // Americas cross
+  { from:'MIA', to:'YYZ', group:'americas', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+  { from:'EWR', to:'YYZ', group:'americas', color:['rgba(196,181,255,0.7)','rgba(123,97,255,0.7)'] },
+];
+
+const FUN_FACTS = [
+  "FedEx's Memphis Super Hub sorts over <strong>1.5 million packages</strong> every single night!",
+  "The FedEx fleet of <strong>702 aircraft</strong> makes it the world's largest cargo airline by fleet size.",
+  "Fred Smith's original Yale term paper proposing overnight delivery allegedly received a <strong>C grade</strong> — he went on to build a $90B company.",
+  "FedEx was founded in <strong>1971</strong> in Little Rock, AR, then moved to Memphis because of its central US location and weather reliability.",
+  "At peak, Memphis airport handles <strong>~400 flights per night</strong> — most between 10 PM and 4 AM.",
+  "Anchorage (ANC) is a critical refueling stop because it's <strong>equidistant from 90%</strong> of the industrialized world.",
+  "FedEx Express delivers to over <strong>220 countries and territories</strong> — more than most passenger airlines.",
+  "The company's name comes from <strong>Federal Express</strong> — Fred Smith hoped for a government mail contract that never materialized.",
+  "FedEx's Guangzhou hub serves the <strong>Pearl River Delta</strong> — the world's largest manufacturing cluster.",
+  "In 2015, both GDS companies Sabre and Travelport exited the OTA business entirely — selling to Expedia.",
+  "Indianapolis became FedEx's national hub in <strong>2005</strong> with a massive automated sorting facility.",
+  "FedEx planes fly <strong>great circle routes</strong> — the shortest path between two points on a sphere, which is why routes over the North Pole are common.",
+  "The FedEx logo contains a hidden <strong>arrow between the E and x</strong> — one of the most famous design easter eggs.",
+  "FedEx operates the world's largest <strong>DC-10/MD-11</strong> fleet, converted from retired passenger planes to freighters.",
+  "Fort Worth Alliance Airport was purpose-built as a <strong>cargo-only</strong> airport — no commercial passenger flights.",
+  "Memphis International was the world's <strong>busiest cargo airport</strong> for over 20 consecutive years (1992–2020).",
+];
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+
+let globe;
+let currentTab = 'hubs';
+let currentFilter = 'all';
+let activeHubId = null;
+let routeFilter = 'all';
+
+const hubMap = {};
+HUBS.forEach(h => hubMap[h.id] = h);
+
+// ══════════════════════════════════════
+//  FUNCTIONS
+// ══════════════════════════════════════
+
+function createStars() {
+  const c = document.getElementById('stars');
+  for (let i = 0; i < 200; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2 + 1;
+    s.style.width = sz + 'px'; s.style.height = sz + 'px';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.setProperty('--duration', (Math.random() * 3 + 1) + 's');
+    s.style.animationDelay = Math.random() * 3 + 's';
+    c.appendChild(s);
+  }
+}
+
+function updateClock() {
+  const now = new Date();
+  const memphis = now.toLocaleTimeString('en-US', { timeZone:'America/Chicago', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  document.getElementById('memphisClock').textContent = memphis;
+}
+
+function getHubSize(tier) {
+  switch(tier) {
+    case 'superhub': return 1.2;
+    case 'national': return 0.9;
+    case 'regional': return 0.6;
+    case 'international': return 0.45;
+    default: return 0.4;
+  }
+}
+
+function getHubColor(tier) {
+  switch(tier) {
+    case 'superhub': return '#FF6200';
+    case 'national': return '#9b59b6';
+    case 'regional': return '#22D3EE';
+    case 'international': return '#7b61ff';
+    default: return '#7b61ff';
+  }
+}
+
+function getRingSize(tier) {
+  switch(tier) {
+    case 'superhub': return 3;
+    case 'national': return 2;
+    case 'regional': return 1.5;
+    case 'international': return 1;
+    default: return 1;
+  }
+}
+
+function initGlobe() {
+  globe = Globe()(document.getElementById('globe-container'))
+    .globeImageUrl('https://unpkg.com/three-globe@2.35.0/example/img/earth-blue-marble.jpg')
+    .bumpImageUrl('https://unpkg.com/three-globe@2.35.0/example/img/earth-topology.png')
+    .backgroundImageUrl('https://unpkg.com/three-globe@2.35.0/example/img/night-sky.png')
+    .atmosphereColor('#4D148C')
+    .atmosphereAltitude(0.18)
+    .width(window.innerWidth)
+    .height(window.innerHeight)
+
+    // Hub rings
+    .ringsData([])
+    .ringLat('lat').ringLng('lng')
+    .ringAltitude(0.005)
+    .ringColor('color')
+    .ringMaxRadius('maxR')
+    .ringPropagationSpeed('speed')
+    .ringRepeatPeriod('repeat')
+
+    // Flight arcs
+    .arcsData([])
+    .arcStartLat('startLat').arcStartLng('startLng')
+    .arcEndLat('endLat').arcEndLng('endLng')
+    .arcColor('color')
+    .arcDashLength(0.5).arcDashGap(0.25).arcDashAnimateTime(3000)
+    .arcStroke(0.4).arcAltitudeAutoScale(0.35).arcLabel('label')
+
+    // Hub labels
+    .labelsData([])
+    .labelLat('lat').labelLng('lng').labelText('text')
+    .labelSize(d => d.size || 1).labelColor(() => '#c4b5ff')
+    .labelDotRadius(d => d.dotR || 0.3).labelAltitude(0.015)
+
+    // Hub points
+    .pointsData([])
+    .pointLat('lat').pointLng('lng')
+    .pointAltitude(0.01)
+    .pointRadius('radius')
+    .pointColor('color')
+    ;
+
+  globe.controls().autoRotate = true;
+  globe.controls().autoRotateSpeed = 0.3;
+  globe.controls().enableZoom = true;
+
+  window.addEventListener('resize', () => {
+    globe.width(window.innerWidth).height(window.innerHeight);
+  });
+}
+
+function updateGlobeData(routeGroupFilter) {
+  // Hub rings
+  const rings = HUBS.map(h => ({
+    lat: h.lat, lng: h.lng,
+    color: () => getHubColor(h.tier),
+    maxR: getRingSize(h.tier),
+    speed: h.tier === 'superhub' ? 3 : 2,
+    repeat: h.tier === 'superhub' ? 800 : 1200,
+  }));
+  globe.ringsData(rings);
+
+  // Hub points
+  const points = HUBS.map(h => ({
+    lat: h.lat, lng: h.lng,
+    radius: getHubSize(h.tier),
+    color: getHubColor(h.tier),
+  }));
+  globe.pointsData(points);
+
+  // Labels
+  const labels = HUBS.map(h => ({
+    lat: h.lat, lng: h.lng,
+    text: `${h.id} — ${h.name}`,
+    size: h.tier === 'superhub' ? 1.4 : h.tier === 'national' ? 1.1 : 0.85,
+    dotR: getHubSize(h.tier) * 0.5,
+  }));
+  globe.labelsData(labels);
+
+  // Routes
+  let filteredRoutes = ROUTES;
+  if (routeGroupFilter && routeGroupFilter !== 'all') {
+    filteredRoutes = ROUTES.filter(r => r.group === routeGroupFilter);
+  }
+
+  const arcs = filteredRoutes.map(r => {
+    const from = hubMap[r.from];
+    const to = hubMap[r.to];
+    if (!from || !to) return null;
+    return {
+      startLat: from.lat, startLng: from.lng,
+      endLat: to.lat, endLng: to.lng,
+      color: r.color,
+      label: `${r.from} → ${r.to}`,
+    };
+  }).filter(Boolean);
+  globe.arcsData(arcs);
+}
+
+function renderHubs() {
+  const list = document.getElementById('hubList');
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let hubs = HUBS;
+
+  if (currentTab === 'routes') {
+    renderRouteFilters();
+    return;
+  }
+
+  if (currentFilter !== 'all') hubs = hubs.filter(h => h.tier === currentFilter);
+  if (search) {
+    hubs = hubs.filter(h =>
+      h.name.toLowerCase().includes(search) ||
+      h.id.toLowerCase().includes(search) ||
+      h.country.toLowerCase().includes(search) ||
+      h.fullName.toLowerCase().includes(search)
+    );
+  }
+
+  list.innerHTML = hubs.map(h => `
+    <div class="hub-card ${h.tier} ${activeHubId===h.id?'active':''}" onclick="selectHub('${h.id}')">
+      <div class="hub-tier">${h.tierLabel}</div>
+      <div class="hub-name">${h.name}</div>
+      <div class="hub-meta">
+        <span class="hub-iata">${h.id}</span>
+        <span>📍 ${h.country}</span>
+        <span>✈️ ${h.flights}</span>
+      </div>
+    </div>
+  `).join('');
+
+  if (hubs.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#4a5580;">
+      <div style="font-size:2rem;margin-bottom:10px;">🔍</div>
+      <div>No hubs found.</div></div>`;
+  }
+}
+
+function renderRouteFilters() {
+  const list = document.getElementById('hubList');
+  const groups = [
+    { id: 'all', label: 'All Routes', count: ROUTES.length, icon: '🌐' },
+    { id: 'memphis', label: 'Memphis Spokes', count: ROUTES.filter(r=>r.group==='memphis').length, icon: '🟠' },
+    { id: 'indianapolis', label: 'Indianapolis Spokes', count: ROUTES.filter(r=>r.group==='indianapolis').length, icon: '🟣' },
+    { id: 'transpacific', label: 'Transpacific', count: ROUTES.filter(r=>r.group==='transpacific').length, icon: '🔵' },
+    { id: 'transatlantic', label: 'Transatlantic', count: ROUTES.filter(r=>r.group==='transatlantic').length, icon: '🔵' },
+    { id: 'asia', label: 'Intra-Asia', count: ROUTES.filter(r=>r.group==='asia').length, icon: '💜' },
+    { id: 'europe', label: 'Intra-Europe', count: ROUTES.filter(r=>r.group==='europe').length, icon: '💜' },
+    { id: 'mideast', label: 'Middle East / India', count: ROUTES.filter(r=>r.group==='mideast').length, icon: '💜' },
+    { id: 'americas', label: 'Americas', count: ROUTES.filter(r=>r.group==='americas').length, icon: '💜' },
+  ];
+
+  list.innerHTML = groups.map(g => `
+    <div class="hub-card ${routeFilter===g.id?'active':''} regional" onclick="filterRoutes('${g.id}')" style="cursor:pointer;">
+      <div class="hub-name">${g.icon} ${g.label}</div>
+      <div class="hub-meta"><span>${g.count} routes</span></div>
+    </div>
+  `).join('');
+}
+
+function filterRoutes(group) {
+  routeFilter = group;
+  updateGlobeData(group);
+  renderHubs();
+}
+
+function selectHub(id) {
+  const hub = hubMap[id];
+  if (!hub) return;
+  activeHubId = id;
+  renderHubs();
+  showDetail(hub);
+
+  // Highlight connected routes
+  const connected = ROUTES.filter(r => r.from === id || r.to === id);
+  const arcs = connected.map(r => {
+    const from = hubMap[r.from]; const to = hubMap[r.to];
+    return { startLat:from.lat, startLng:from.lng, endLat:to.lat, endLng:to.lng, color:r.color, label:`${r.from} → ${r.to}` };
+  });
+  globe.arcsData(arcs);
+  globe.pointOfView({ lat: hub.lat, lng: hub.lng, altitude: 1.8 }, 1200);
+}
+
+function showDetail(hub) {
+  document.getElementById('detailTier').textContent = hub.tierLabel;
+  document.getElementById('detailTitle').textContent = `${hub.name} (${hub.id})`;
+
+  const connectedCount = ROUTES.filter(r => r.from === hub.id || r.to === hub.id).length;
+  const items = [
+    { label:'Full Name', value:hub.fullName },
+    { label:'IATA Code', value:hub.id },
+    { label:'Country', value:hub.country },
+    { label:'Coordinates', value:`${hub.lat.toFixed(4)}°, ${hub.lng.toFixed(4)}°` },
+    { label:'Est. Daily Flights', value:hub.flights },
+    { label:'Connected Routes', value:connectedCount },
+  ];
+  document.getElementById('detailGrid').innerHTML = items.map(i =>
+    `<div class="detail-item"><div class="label">${i.label}</div><div class="value">${i.value}</div></div>`
+  ).join('');
+
+  const fact = hub.desc;
+  document.getElementById('funFact').innerHTML = `📦 ${fact}`;
+  document.getElementById('detailPanel').classList.add('show');
+}
+
+// Live feed simulation
+function generateFeed() {
+  const body = document.getElementById('feedBody');
+  const statuses = ['departed','en route FL350','arrived','taxiing','loading','departed'];
+  const feedItems = [];
+
+  for (let i = 0; i < 20; i++) {
+    const route = ROUTES[Math.floor(Math.random() * ROUTES.length)];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const flightNum = `FX ${1000 + Math.floor(Math.random() * 9000)}`;
+    const h = Math.floor(Math.random() * 24);
+    const m = Math.floor(Math.random() * 60);
+    const time = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    feedItems.push(`<div class="feed-item"><span class="feed-time">${time}Z</span> <span class="feed-route">${flightNum}</span> ${route.from}→${route.to} <span class="feed-status">${status}</span></div>`);
+  }
+  body.innerHTML = feedItems.join('');
+}
+
+function setupEvents() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentTab = tab.dataset.tab;
+      if (currentTab === 'routes') {
+        document.getElementById('filterBar').style.display = 'none';
+      } else {
+        document.getElementById('filterBar').style.display = 'flex';
+      }
+      renderHubs();
+    });
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderHubs();
+    });
+  });
+
+  document.getElementById('searchInput').addEventListener('input', renderHubs);
+
+  document.getElementById('sidebarToggle').addEventListener('click', () => {
+    const sb = document.getElementById('sidebar');
+    sb.classList.toggle('collapsed');
+    document.getElementById('sidebarToggle').textContent = sb.classList.contains('collapsed') ? '▶' : '◀';
+  });
+
+  document.getElementById('detailClose').addEventListener('click', () => {
+    document.getElementById('detailPanel').classList.remove('show');
+    activeHubId = null;
+    renderHubs();
+    updateGlobeData(routeFilter === 'all' ? undefined : routeFilter);
+    globe.pointOfView({ lat: 35, lng: -89, altitude: 2.5 }, 1200);
+  });
+}
+
+function main() {
+  createStars();
+  initGlobe();
+  setupEvents();
+  updateGlobeData();
+  renderHubs();
+  generateFeed();
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Refresh feed every 15s
+  setInterval(generateFeed, 15000);
+
+  // Start at Memphis with cinematic sweep
+  globe.pointOfView({ lat: 35.04, lng: -89.97, altitude: 2.2 }, 0);
+
+  setTimeout(() => {
+    document.getElementById('loadingScreen').classList.add('hidden');
+  }, 2200);
+}
+
+main();
+</script>
+</body>
+</html>
