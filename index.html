@@ -1534,30 +1534,75 @@ function generateSampleFlights() {
   return routes.map(r => ({ ...r, on_ground: false }));
 }
 
+const FR24_TOKEN = '019cf85a-b2c4-72bd-a044-6a7dddf033f7|1sZt0HJEe8sTgJHyxLHxTp3uEUnlwTStVzhOz3v85cc9f0cf';
+
+async function fetchFlightsFR24() {
+  const resp = await fetch('/api/fr24/flights?airline=FDX', {
+    headers: {
+      'Accept': 'application/json',
+      'Accept-Version': 'v1',
+      'Authorization': 'Bearer ' + FR24_TOKEN,
+    }
+  });
+  if (!resp.ok) throw new Error('FR24 API ' + resp.status);
+  const json = await resp.json();
+  const flights = json.data || [];
+  return flights.map(f => ({
+    callsign: f.callsign || f.flight || 'FDX',
+    lat: f.lat || f.latitude,
+    lng: f.lon || f.longitude,
+    altitude: (f.alt || f.altitude || 0) * 0.3048, // ft to meters
+    velocity: (f.gspeed || f.speed || 0) * 0.514444, // kts to m/s
+    heading: f.heading || f.track || 0,
+    on_ground: f.on_ground || false,
+    source: 'fr24',
+  })).filter(f => f.lat != null && f.lng != null);
+}
+
+async function fetchFlightsOpenSky() {
+  const resp = await fetch('/api/opensky/states/all');
+  if (!resp.ok) throw new Error('OpenSky API ' + resp.status);
+  const json = await resp.json();
+  const states = json.states || [];
+  const fdxFlights = states.filter(s => s[1] && s[1].trim().startsWith('FDX'));
+  return fdxFlights.map(s => ({
+    callsign: (s[1] || '').trim(),
+    lat: s[6],
+    lng: s[5],
+    altitude: s[7] || 0,
+    velocity: s[9] || 0,
+    heading: s[10] || 0,
+    on_ground: s[8],
+    source: 'opensky',
+  })).filter(f => f.lat !== null && f.lng !== null);
+}
+
 async function fetchFlights() {
-  let fetched = false;
+  let flights = [];
+
+  // Try FR24 first (primary), then OpenSky (fallback), then simulated
   try {
-    const resp = await fetch('/api/opensky/states/all');
-    if (!resp.ok) throw new Error('OpenSky API error');
-    const json = await resp.json();
-    const states = json.states || [];
-    const fdxFlights = states.filter(s => s[1] && s[1].trim().startsWith('FDX'));
-    flightPositions = fdxFlights.map(s => ({
-      callsign: (s[1] || '').trim(),
-      lat: s[6],
-      lng: s[5],
-      altitude: s[7] || 0,
-      velocity: s[9] || 0,
-      heading: s[10] || 0,
-      on_ground: s[8],
-    })).filter(f => f.lat !== null && f.lng !== null);
-    fetched = flightPositions.length > 0;
+    flights = await fetchFlightsFR24();
+    if (flights.length > 0) console.log('Flights: FR24 live data,', flights.length, 'aircraft');
   } catch(e) {
-    console.warn('Flights API unavailable, using simulated data:', e.message);
+    console.warn('FR24 unavailable:', e.message);
   }
 
-  if (!fetched) flightPositions = generateSampleFlights();
+  if (flights.length === 0) {
+    try {
+      flights = await fetchFlightsOpenSky();
+      if (flights.length > 0) console.log('Flights: OpenSky fallback,', flights.length, 'aircraft');
+    } catch(e) {
+      console.warn('OpenSky unavailable:', e.message);
+    }
+  }
 
+  if (flights.length === 0) {
+    flights = generateSampleFlights();
+    console.log('Flights: using simulated data,', flights.length, 'aircraft');
+  }
+
+  flightPositions = flights;
   LAYERS.flights.data = flightPositions;
   LAYERS.flights.count = flightPositions.length;
   renderLayerPanel();

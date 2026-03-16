@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/fr24/flights", "destination": "https://fr24api.flightradar24.com/api/live/flight-positions/full" },
     { "source": "/api/opensky/:path*", "destination": "https://opensky-network.org/api/:path*" },
     { "source": "/api/metar", "destination": "https://aviationweather.gov/api/data/metar" },
     { "source": "/api/airsigmet", "destination": "https://aviationweather.gov/api/data/airsigmet" },
