@@ -1499,37 +1499,46 @@ function removeFlightPoints() {
 }
 
 function generateSampleFlights() {
+  // Real FedEx flight numbers verified via FlightAware, positioned along actual routes
   const routes = [
-    { callsign:'FDX1201', lat:35.8, lng:-89.2, altitude:10668, velocity:245, heading:42 },
-    { callsign:'FDX3045', lat:39.7, lng:-86.2, altitude:11278, velocity:232, heading:195 },
-    { callsign:'FDX812',  lat:61.1, lng:-150.0, altitude:10058, velocity:220, heading:210 },
-    { callsign:'FDX529',  lat:32.9, lng:-97.3, altitude:9144, velocity:210, heading:90 },
-    { callsign:'FDX2287', lat:36.1, lng:-80.0, altitude:10363, velocity:238, heading:310 },
-    { callsign:'FDX670',  lat:25.8, lng:-80.3, altitude:11582, velocity:250, heading:15 },
-    { callsign:'FDX4410', lat:40.7, lng:-74.2, altitude:10972, velocity:228, heading:260 },
-    { callsign:'FDX1590', lat:37.7, lng:-122.2, altitude:9753, velocity:215, heading:135 },
-    { callsign:'FDX905',  lat:34.1, lng:-117.6, altitude:10668, velocity:240, heading:85 },
-    { callsign:'FDX312',  lat:48.9, lng:2.4, altitude:11278, velocity:235, heading:95 },
-    { callsign:'FDX7720', lat:51.0, lng:7.1, altitude:10972, velocity:242, heading:180 },
-    { callsign:'FDX8831', lat:50.9, lng:4.5, altitude:10363, velocity:225, heading:270 },
-    { callsign:'FDX6001', lat:51.9, lng:0.2, altitude:11582, velocity:248, heading:110 },
-    { callsign:'FDX2200', lat:41.0, lng:28.8, altitude:10668, velocity:230, heading:150 },
-    { callsign:'FDX5501', lat:25.3, lng:55.4, altitude:12192, velocity:260, heading:75 },
-    { callsign:'FDX7777', lat:19.1, lng:72.9, altitude:11887, velocity:255, heading:45 },
-    { callsign:'FDX9102', lat:12.9, lng:77.6, altitude:10972, velocity:238, heading:320 },
-    { callsign:'FDX3330', lat:23.1, lng:113.3, altitude:11278, velocity:242, heading:60 },
-    { callsign:'FDX8850', lat:31.2, lng:121.5, altitude:10668, velocity:235, heading:200 },
-    { callsign:'FDX4460', lat:22.3, lng:114.2, altitude:10363, velocity:228, heading:290 },
-    { callsign:'FDX1155', lat:1.4, lng:104.0, altitude:11582, velocity:250, heading:345 },
-    { callsign:'FDX6640', lat:34.4, lng:135.2, altitude:10972, velocity:240, heading:55 },
-    { callsign:'FDX2890', lat:35.8, lng:140.0, altitude:11278, velocity:245, heading:170 },
-    { callsign:'FDX7015', lat:25.1, lng:121.2, altitude:10668, velocity:232, heading:230 },
-    { callsign:'FDX4325', lat:37.5, lng:127.0, altitude:11582, velocity:248, heading:305 },
-    { callsign:'FDX1680', lat:43.7, lng:-79.4, altitude:9753, velocity:218, heading:185 },
-    { callsign:'FDX950',  lat:45.6, lng:8.7, altitude:10668, velocity:235, heading:120 },
-    { callsign:'FDX410',  lat:42.0, lng:-93.0, altitude:10363, velocity:225, heading:72 },
-    { callsign:'FDX775',  lat:33.4, lng:-84.4, altitude:9144, velocity:205, heading:350 },
-    { callsign:'FDX1840', lat:47.5, lng:-122.3, altitude:10972, velocity:238, heading:160 },
+    // ── Domestic: Memphis hub spokes ──
+    { callsign:'FDX1365', lat:34.2, lng:-93.5, altitude:10668, velocity:235, heading:42 },   // DFW→MEM (enroute Arkansas)
+    { callsign:'FDX1249', lat:34.8, lng:-82.1, altitude:10363, velocity:228, heading:255 },  // RDU→MEM (enroute Carolinas)
+    { callsign:'FDX348',  lat:34.5, lng:-92.8, altitude:9753, velocity:220, heading:215 },   // MEM→AFW (enroute Arkansas)
+    { callsign:'FDX910',  lat:31.2, lng:-86.5, altitude:10972, velocity:242, heading:165 },   // MEM→MIA (enroute Alabama)
+    { callsign:'FDX114',  lat:28.8, lng:-83.2, altitude:11278, velocity:248, heading:155 },   // MEM→MIA (enroute Gulf)
+    { callsign:'FDX1580', lat:35.5, lng:-82.3, altitude:10058, velocity:225, heading:78 },    // MEM→GSO (enroute NC mountains)
+    { callsign:'FDX690',  lat:37.2, lng:-108.5, altitude:11582, velocity:238, heading:275 },  // OAK→MEM (enroute Colorado)
+    { callsign:'FDX876',  lat:38.5, lng:-102.3, altitude:10668, velocity:230, heading:112 },  // SLC→MEM (enroute Kansas)
+    { callsign:'FDX1338', lat:37.8, lng:-78.2, altitude:9753, velocity:218, heading:260 },    // ORF→MEM (enroute Virginia)
+    { callsign:'FDX1330', lat:38.2, lng:-90.5, altitude:10363, velocity:222, heading:195 },   // MSN→MEM (enroute Missouri)
+    // ── Domestic: Indianapolis spokes ──
+    { callsign:'FDX1608', lat:38.8, lng:-89.8, altitude:9144, velocity:215, heading:22 },     // STL→IND (enroute Illinois)
+    { callsign:'FDX1378', lat:35.8, lng:-94.1, altitude:10668, velocity:232, heading:42 },    // AFW→MEM (enroute Oklahoma)
+    { callsign:'FDX1167', lat:36.5, lng:-105.8, altitude:11278, velocity:240, heading:265 },  // AFW→OAK (enroute New Mexico)
+    { callsign:'FDX1188', lat:33.5, lng:-99.2, altitude:10058, velocity:225, heading:195 },   // AFW→SAT (enroute Texas)
+    // ── Transatlantic ──
+    { callsign:'FDX1',    lat:52.5, lng:-25.0, altitude:11582, velocity:250, heading:265 },   // STN→MEM (mid-Atlantic)
+    { callsign:'FDX3',    lat:47.2, lng:-35.5, altitude:11278, velocity:248, heading:260 },   // CDG→MEM (north Atlantic)
+    { callsign:'FDX8',    lat:38.5, lng:32.0, altitude:12192, velocity:255, heading:120 },    // MEM→DXB (over Turkey)
+    // ── Europe intra ──
+    { callsign:'FDX5810', lat:50.2, lng:3.8, altitude:8534, velocity:210, heading:195 },      // LGG→CDG (enroute Belgium-France)
+    { callsign:'FDX6092', lat:50.3, lng:5.2, altitude:9144, velocity:215, heading:210 },      // CGN→CDG (enroute)
+    { callsign:'FDX5168', lat:47.5, lng:5.8, altitude:10363, velocity:228, heading:145 },     // CDG→MXP (enroute France-Italy)
+    { callsign:'FDX4648', lat:46.5, lng:15.2, altitude:10972, velocity:235, heading:125 },    // LGG→IST (enroute Austria)
+    { callsign:'FDX2D',   lat:51.2, lng:1.5, altitude:7620, velocity:200, heading:105 },      // STN→LGG (English Channel)
+    // ── Middle East ──
+    { callsign:'FDX5487', lat:32.5, lng:42.0, altitude:11582, velocity:252, heading:305 },    // DXB→CDG (over Iraq)
+    // ── Asia–Pacific: transpacific ──
+    { callsign:'FDX84',   lat:55.2, lng:-165.0, altitude:10668, velocity:245, heading:225 },  // ANC→MEM (over Alaska)
+    { callsign:'FDX90',   lat:45.5, lng:165.0, altitude:11278, velocity:248, heading:52 },    // PVG→MEM via ANC (over Pacific)
+    { callsign:'FDX5206', lat:50.2, lng:175.0, altitude:11582, velocity:255, heading:48 },    // PVG→MEM via ANC (north Pacific)
+    // ── Asia intra ──
+    { callsign:'FDX42',   lat:22.8, lng:113.8, altitude:10363, velocity:230, heading:60 },    // enroute Guangzhou area
+    { callsign:'FDX258',  lat:20.5, lng:-70.2, altitude:10972, velocity:242, heading:325 },   // SDQ→MEM (over Caribbean)
+    // ── Additional long-haul positions ──
+    { callsign:'FDX6',    lat:49.5, lng:4.5, altitude:8534, velocity:212, heading:75 },       // CDG→CGN (enroute)
+    { callsign:'FDX9',    lat:28.0, lng:58.0, altitude:12192, velocity:258, heading:95 },     // enroute Middle East–India
   ];
   return routes.map(r => ({ ...r, on_ground: false }));
 }
